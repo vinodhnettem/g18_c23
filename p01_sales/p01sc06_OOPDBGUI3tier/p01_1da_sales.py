@@ -38,8 +38,8 @@ class Sales:
     DATE_FORMAT = "%Y-%m-%d"            # Class constants
     MIN_YEAR, MAX_YEAR = 2000, 2_999
 
-    def __init__(self, id: int, amount: float=0.0, sales_date: date=None, region: Region=None):
-        self._salesdata = {"ID": id, "amount": amount, "salesDate": sales_date, "region": region}
+    def __init__(self, id: int, amount: float=0.0, salesDate: date=None, region: Region=None):
+        self._salesdata = {"ID": id, "amount": amount, "salesDate": salesDate, "region": region}
 
     def __str__(self):
         return (f"Sales(ID={self._salesdata["ID"]}, amount={self._salesdata["amount"]}, "
@@ -61,7 +61,7 @@ class Sales:
         return self._salesdata["amount"]
 
     @property
-    def sales_date(self):
+    def salesDate(self):
         return self._salesdata["salesDate"]
 
     @property
@@ -74,7 +74,7 @@ class Sales:
 
     @property
     def has_bad_date(self) -> bool:
-        return self._salesdata["salesDate"] == "?" # or not isinstance(self.sales_date, date)
+        return self._salesdata["salesDate"] == "?" # or not isinstance(self.salesDate, date)
 
     @property
     def has_bad_data(self) -> bool:
@@ -87,8 +87,8 @@ class Sales:
         except ValueError:
             row[0] = "?"    # Mark invalid amount as bad
         try:  # date
-            sales_date = datetime.strptime(row[1], Sales.DATE_FORMAT)
-            row[1] = sales_date.date()  # convert to date
+            salesDate = datetime.strptime(row[1], Sales.DATE_FORMAT)
+            row[1] = salesDate.date()  # convert to date
         except ValueError:
             row[1] = "?"    # Mark invalid date as bad
 
@@ -174,13 +174,13 @@ class DataFileAccess:
                 all_sales_list = SalesList()
                 for line in reader:
                     if len(line) > 0:
-                        *amount_sales_date, region_code = line
-                        Sales.correct_data_types(amount_sales_date)
-                        amount, sales_date = amount_sales_date[0], amount_sales_date[1]
+                        *amount_salesDate, code = line
+                        Sales.correct_data_types(amount_salesDate)
+                        amount, salesDate = amount_salesDate[0], amount_salesDate[1]
                         kwarg = {"id": DataFileAccess.SALES_ID["Sales"],
                             "amount": amount,
-                            "sales_date": sales_date,
-                            "region": Regions().get(region_code),
+                            "salesDate": salesDate,
+                            "region": Regions().get(code),
                         }
                         sales = Sales(**kwarg)
                         all_sales_list.add(sales)
@@ -203,7 +203,7 @@ class DataFileAccess:
 
 
     def save_all_sales(self, delimiter: str = ',') -> None:
-        sales_records = [[sales.amount, f"{sales.sales_date:{Sales.DATE_FORMAT}}", sales.region.code]
+        sales_records = [[sales.amount, f"{sales.salesDate:{Sales.DATE_FORMAT}}", sales.region.code]
                          for sales in self._all_sales_list] # do not include sales.id in csv file.
         try:
             with open(self._all_sale_filepath_name, 'w', newline='') as csvfile:
@@ -230,21 +230,21 @@ class SalesFile:
             return True
         return False
 
-    def get_region_code(self) -> str:
+    def get_code(self) -> str:
         return self._sales_filename[self._sales_filename.rfind('.') - 1]
 
     def import_sales(self, delimiter: str=',') -> SalesList:   #Optional[SalesList]:
         with open(self._sales_filepath_name, newline='') as csvfile:
             reader = csv.reader(csvfile, delimiter=delimiter)
-            region_code = self.get_region_code()
+            code = self.get_code()
             imported_sales_list = SalesList()
-            for amount_sales_date in reader:
-                Sales.correct_data_types(amount_sales_date)
-                amount, sales_date = amount_sales_date[0], amount_sales_date[1]
+            for amount_salesDate in reader:
+                Sales.correct_data_types(amount_salesDate)
+                amount, salesDate = amount_salesDate[0], amount_salesDate[1]
                 kwarg = {"id": 0,   # temporary id, will be updated later
                         "amount": amount,
-                        "sales_date": sales_date,
-                        "region": Regions().get(region_code),
+                        "salesDate": salesDate,
+                        "region": Regions().get(code),
                         }
                 sales = Sales(**kwarg)
                 imported_sales_list.add(sales)
@@ -280,11 +280,11 @@ class InputAccess:
         year = InputAccess.input_year()
         month = InputAccess.input_month()
         day = InputAccess.input_day(year, month)
-        sales_date = date(year, month, day)
-        region = Regions().get(InputAccess.input_region_code())
+        salesDate = date(year, month, day)
+        region = Regions().get(InputAccess.input_code())
         kwarg = {"id": 0,   # temporary id will be updated
                 "amount": amount,
-                "sales_date": sales_date,
+                "salesDate": salesDate,
                 "region": region,}
         return kwarg
 
@@ -292,11 +292,11 @@ class InputAccess:
     @staticmethod
     def from_input2() -> dict:
         amount = InputAccess.input_amount()
-        sales_date = InputAccess.input_date()
-        region = Regions().get(InputAccess.input_region_code())
+        salesDate = InputAccess.input_date()
+        region = Regions().get(InputAccess.input_code())
         kwarg = {"id": 0,   # temporary id will be updated
                 "amount": amount,
-                "sales_date": sales_date,
+                "salesDate": salesDate,
                 "region": region,}
         return kwarg
 
@@ -341,7 +341,7 @@ class InputAccess:
         return InputAccess.input_int(**parameters)
 
     @staticmethod
-    def input_region_code() -> str:
+    def input_code() -> str:
         while True:
             fmt = 20
             valid_codes = tuple([region.code for region in Regions()])
@@ -357,12 +357,12 @@ class InputAccess:
         while True:
             entry = input(f"{'Date (yyyy-mm-dd):':20}")
             try:
-                sales_date = datetime.strptime(entry, Sales.DATE_FORMAT)  # ValueError
+                salesDate = datetime.strptime(entry, Sales.DATE_FORMAT)  # ValueError
             except ValueError:
                 print(f"{entry} is not in a valid date format.")
             else:
-                if Sales.MIN_YEAR <= sales_date.year <= Sales.MAX_YEAR:
-                    return sales_date.date()
+                if Sales.MIN_YEAR <= salesDate.year <= Sales.MAX_YEAR:
+                    return salesDate.date()
                 else:
                     print(f"Year of the date must be between {Sales.MIN_YEAR} and {Sales.MAX_YEAR}.")
 
@@ -384,7 +384,7 @@ def main():
 
     salesfile = SalesFile('sales_q1_2021_x.csv')
     print(f"{salesfile._sales_filename=}, "
-          f"{salesfile.is_valid_filename_format=}, {salesfile.get_region_code()=}")
+          f"{salesfile.is_valid_filename_format=}, {salesfile.get_code()=}")
     saleslist = salesfile.import_sales()
     print(f"{(saleslist is None)=}, {saleslist._sales_list=}")
     print(f"{DataFileAccess.SALES_ID['Sales']=}")
@@ -392,7 +392,7 @@ def main():
 
     salesfile = SalesFile('sales_q2_2021_w.csv')
     print(f"{salesfile._sales_filename=}, "
-          f"{salesfile.is_valid_filename_format=}, {salesfile.get_region_code()=}")
+          f"{salesfile.is_valid_filename_format=}, {salesfile.get_code()=}")
     saleslist = salesfile.import_sales()
     print(f"{(saleslist is None)=}, {saleslist._sales_list=}")
     print(f"{DataFileAccess.SALES_ID['Sales']=}")
@@ -400,7 +400,7 @@ def main():
 
     salesfile = SalesFile('sales_q3_2021_w.csv')
     print(f"{salesfile._sales_filename=}, "
-          f"{salesfile.is_valid_filename_format=}, {salesfile.get_region_code()=}")
+          f"{salesfile.is_valid_filename_format=}, {salesfile.get_code()=}")
     saleslist = salesfile.import_sales()
     print(f"{(saleslist is None)=}, {saleslist._sales_list=}")
     for sales in saleslist._sales_list:
@@ -410,7 +410,7 @@ def main():
 
     salesfile = SalesFile('sales_q4_2021_w.csv')
     print(f"{salesfile._sales_filename=}, "
-          f"{salesfile.is_valid_filename_format=}, {salesfile.get_region_code()=}")
+          f"{salesfile.is_valid_filename_format=}, {salesfile.get_code()=}")
     saleslist = salesfile.import_sales()
     print(f"{(saleslist is None)=}, {saleslist._sales_list=}")
     for sales in saleslist._sales_list:

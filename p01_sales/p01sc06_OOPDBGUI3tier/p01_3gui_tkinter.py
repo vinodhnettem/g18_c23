@@ -73,16 +73,16 @@ class SalesFrame(ttk.Frame):
 
 
     def get_amount(self):
-        sales_date = self.salesDate.get()
+        salesDate = self.salesDate.get()
         region_code = self.region.get()
-        if sales_date == "" or region_code == "":
+        if salesDate == "" or region_code == "":
             messagebox.showerror("Error", "Please enter date and region to get sales amount")
         else:
             # check if sales date is in the right format
             try:
-                sales_date = datetime.strptime(sales_date, Sales.DATE_FORMAT).date()  # ValueError
+                salesDate = datetime.strptime(salesDate, Sales.DATE_FORMAT).date()  # ValueError
             except ValueError:
-                messagebox.showerror("Error", f"{sales_date} is not in a valid date format \n"
+                messagebox.showerror("Error", f"{salesDate} is not in a valid date format \n"
                                               "'yyyy-mm-dd'")
             else:
                 # check if region is one of the right option
@@ -92,7 +92,7 @@ class SalesFrame(ttk.Frame):
                     messagebox.showerror("Error", f"{region_code} is not one of the following \n"
                                                   f"region code: {region_codes}")
                 else: # check if there is sales by the date and region
-                    self.sales = self.sqlite_dbaccess.retrieve_sales_by_date_region(sales_date, region_code)
+                    self.sales = self.sqlite_dbaccess.retrieve_sales_by_date_region(salesDate, region_code)
                     if self.sales is None:
                         # clear id and amount field
                         self.amount.set("")
@@ -122,7 +122,7 @@ class SalesFrame(ttk.Frame):
 
     
     def save_changes(self):
-        sales_date = self.salesDate.get()
+        salesDate = self.salesDate.get()
         region_code = self.region.get()
         amount = self.amount.get()
         id = self.id.get()
@@ -133,9 +133,9 @@ class SalesFrame(ttk.Frame):
         else: # update amount for a sale record by id
             id = int(id)
             amount = float(amount)
-            sales_date = datetime.strptime(sales_date, Sales.DATE_FORMAT).date()
+            salesDate = datetime.strptime(salesDate, Sales.DATE_FORMAT).date()
             region = Regions().get(region_code)
-            self.sales = Sales(id, amount, sales_date, region)
+            self.sales = Sales(id, amount, salesDate, region)
             self.sqlite_dbaccess.update_sales(self.sales)
             messagebox.showinfo("Success", f"{str(self.sales)} is updated.")
             self.clear_field()
