@@ -64,7 +64,7 @@ class SQLiteDBAccess:
             connection.close()
 
     def update_sales(self, sales: Sales) -> None:
-        '''Update amount, salesDate, and region fields of Sales table for the record with the given id value.'''
+        '''Update amount, salesDate fields of Sales table for the record with the given id value.'''
         
         query = '''
             UPDATE Sales
